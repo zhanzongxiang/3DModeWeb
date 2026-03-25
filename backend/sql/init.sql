@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS sys_user (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(64) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS tb_model (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  name VARCHAR(128) NOT NULL,
+  artwork_name VARCHAR(128) NOT NULL,
+  type VARCHAR(64) NOT NULL,
+  image_urls JSON NULL,
+  disk_link VARCHAR(512) NOT NULL,
+  is_free TINYINT NOT NULL DEFAULT 1,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_model_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE INDEX idx_model_type ON tb_model(type);
+CREATE INDEX idx_model_name ON tb_model(name);
+CREATE INDEX idx_model_artwork_name ON tb_model(artwork_name);
+
