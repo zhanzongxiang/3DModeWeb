@@ -4,6 +4,8 @@ import HallView from "../views/HallView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import UploadView from "../views/UploadView.vue";
+import ModelDetailView from "../views/ModelDetailView.vue";
+import MyCollectionsView from "../views/MyCollectionsView.vue";
 import { useAuthStore } from "../stores/auth";
 
 const router = createRouter({
@@ -11,6 +13,8 @@ const router = createRouter({
   routes: [
     { path: "/", component: RecommendView },
     { path: "/hall", component: HallView },
+    { path: "/models/:id", component: ModelDetailView },
+    { path: "/collections", component: MyCollectionsView, meta: { requiresAuth: true } },
     { path: "/login", component: LoginView },
     { path: "/register", component: RegisterView },
     { path: "/upload", component: UploadView, meta: { requiresAuth: true } },

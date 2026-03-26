@@ -33,3 +33,8 @@ app:
     secret-key: ${OSS_SECRET_KEY:minioadmin}
     bucket: ${OSS_BUCKET:model-hub}
     public-base-url: ${OSS_PUBLIC_BASE_URL:http://127.0.0.1:9000/model-hub}
+    webp-query: ${OSS_WEBP_QUERY:}
+  turnstile:
+    enabled: ${TURNSTILE_ENABLED:false}
+    secret-key: ${TURNSTILE_SECRET_KEY:}
+    verify-url: ${TURNSTILE_VERIFY_URL:https://challenges.cloudflare.com/turnstile/v0/siteverify}

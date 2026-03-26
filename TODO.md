@@ -12,12 +12,35 @@
 - [x] 7. 模型发布开发：编写 `ModelController.upload()` 接收表单数据并持久化到 MySQL。
 - [x] 8. 模型检索开发：编写 `ModelController.list()`，使用 MyBatis-Plus `LambdaQueryWrapper` 处理 `name`, `artwork_name`, `type` 的模糊查询，并使用 Spring Cache 或 RedisTemplate 缓存首页结果。
 
-## Phase 3: UI/UX & Layout (MakerWorld 风格重构)
-- [x] 9. 样式配置：修改 `tailwind.config.js`。配置干净的中性灰阶（如 `gray-50` 到 `gray-900`），定义主品牌色（如 `brand-green`），并自定义轻量级的 `boxShadow` 用于卡片悬浮效果。
-- [x] 10. 全局布局：编写 `Layout.vue`，实现白底+底边微阴影的 Header，Header 中间放置宽幅的模糊查询搜索框，整体页面背景设为极浅的灰色（如 `bg-gray-50`）以凸显白色内容卡片。
-- [x] 11. 基础组件：开发 `ModelCard.vue`。要求：顶部大图（带柔和圆角），底部紧凑显示模型名称、作者小头像与名称、以及右侧的“免费/夸克链接”标签。鼠标悬浮时卡片整体微弱上浮并加深柔和阴影。
+## Phase 3: 像素级 UI 还原 (MakerWorld 风格)
+- [x] 4. 配置 `tailwind.config.js`：添加自定义颜色 `canvas: '#f4f5f7'`, `primary-text: '#1c1e21'`, `muted: '#8a8d93'`, `brand: '#00AE42'`；添加自定义圆角 `card: '16px'`。
+- [x] 5. 编写基础 Layout：实现固定宽度 (`w-[240px]`) 的左侧边栏（包含顶部的侧边栏收缩图标 `[]`、Logo 和左对齐的图标菜单），和右侧的 `flex-1` 主体区域。整体采用 `h-screen overflow-hidden`，右侧主体区域允许 `overflow-y-auto`。
+- [x] 6. 编写 Header & 分类栏：在右侧主体顶部实现白底 Header。中心放置高度约 `40px`、`rounded-full`、背景色为 `bg-gray-100` 的超宽搜索栏（带左侧放大镜，右侧相机图标）。Header 下方实现一行横向滚动的分类 Tags（推荐、热门等），选中项使用 `bg-[#252525] text-white`，未选中项使用 `bg-gray-100 text-gray-600`。
+- [x] 7. 编写首页 Banner 模块：主内容区顶部实现左右结构 Banner。左半部分为占宽约 65% 的大图轮播，`rounded-[16px]`；右半部分为占宽约 35%、背景为浅绿色渐变的区域，包含“探索更多”标题和 2x2 网格排列的圆角小块（如 MakerLab、创客宝库等）。
+- [x] 8. 编写 ModelCard 组件：容器 `rounded-[16px] bg-white overflow-hidden`。图片区占满宽度；信息区包含深色粗体标题 (`line-clamp-2`)，底部采用 `flex justify-between items-center` 布局，左侧放置圆角头像 `w-5 h-5` 和作者名，右侧放置下载/点赞微小图标和灰色数字 (`text-[12px]`)。左上角支持叠放角标（如模型类型 icon）。
 
 ## Phase 4: Frontend Development
 - [x] 12. 封装网络请求。
 - [x] **13. 页面渲染逻辑：在主视图（`router-view`）中，编写特定逻辑，确保首页路由能根据数据渲染推荐 Banner。**
 - [x] **14. 列表渲染逻辑：确保所有非首页路由仅渲染模型列表，无需 Banner。**
+
+## Phase 5: 基础体验增强 (Current)
+- [x] **15. 数据库 DDL 更新**:
+    - [x] 为 `tb_model` 增加 `print_layer_height`, `print_infill`, `print_support`, `license_type` 字段。
+    - [x] 创建 `tb_make` 表用于存储实物作品秀数据。
+- [x] **16. 后端 Entity 与 DTO 同步**:
+    - [x] 修改 `TbModel.java` 实体类，增加 MyBatis-Plus 对应映射。
+    - [x] 更新 `ModelUploadRequest.java` 接收前端新增的打印参数字段。
+- [x] **17. 前端上传表单改造**:
+    - [x] 在 `UploadView.vue` 引入 `el-form-item` 组，添加 Slider (填充率) 和 Select (材质/协议)。
+    - [x] 预设 CC 协议选项列表：`["CC BY", "CC BY-NC", "CC BY-ND", "CC BY-SA"]`。
+- [x] **18. 模型展示增强**:
+    - [x] 在 `ModelCard.vue` 底部角落增加一个微小的协议图标提示。
+    - [x] 开发详情页组件 `PrintSpec.vue`，用于展示层高、支撑等参数。
+
+## Phase 6: 社区互动 (Next)
+- [x] **19. 作品秀逻辑**: 编写 `MakeController`，支持用户上传实物打印图并关联模型。
+- [x] **20. 收藏功能**: 封装收藏 API，实现前端点击爱心按钮的高亮切换。
+
+## Phase 7: Safety & Ops
+- [x] **21. 验证码接入**: 前端登录页集成 Cloudflare 验证码。

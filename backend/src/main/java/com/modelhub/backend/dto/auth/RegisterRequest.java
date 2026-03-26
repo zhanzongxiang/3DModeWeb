@@ -12,6 +12,8 @@ public class RegisterRequest {
     @Size(min = 6, max = 64, message = "password length should be 6-64")
     private String password;
 
+    private String captchaToken;
+
     public String getUsername() {
         return username;
     }
@@ -27,5 +29,12 @@ public class RegisterRequest {
     public void setPassword(String password) {
         this.password = password;
     }
-}
 
+    public String getCaptchaToken() {
+        return captchaToken;
+    }
+
+    public void setCaptchaToken(String captchaToken) {
+        this.captchaToken = captchaToken;
+    }
+}

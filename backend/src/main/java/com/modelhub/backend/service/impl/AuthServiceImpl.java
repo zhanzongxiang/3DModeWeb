@@ -9,6 +9,7 @@ import com.modelhub.backend.entity.SysUser;
 import com.modelhub.backend.mapper.SysUserMapper;
 import com.modelhub.backend.security.JwtTokenProvider;
 import com.modelhub.backend.service.AuthService;
+import com.modelhub.backend.service.TurnstileService;
 import com.modelhub.backend.util.RequestIpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TurnstileService turnstileService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final HttpServletRequest request;
 
@@ -36,12 +38,14 @@ public class AuthServiceImpl implements AuthService {
             SysUserMapper userMapper,
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
+            TurnstileService turnstileService,
             RedisTemplate<String, Object> redisTemplate,
             HttpServletRequest request
     ) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.turnstileService = turnstileService;
         this.redisTemplate = redisTemplate;
         this.request = request;
     }
@@ -49,6 +53,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void register(RegisterRequest request) {
+        String ip = RequestIpUtil.getClientIp(this.request);
+        turnstileService.verify(request.getCaptchaToken(), ip);
+
         SysUser existing = userMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, request.getUsername())
         );
@@ -67,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         String ip = RequestIpUtil.getClientIp(this.request);
         checkLocked(ip, request.getUsername());
+        turnstileService.verify(request.getCaptchaToken(), ip);
 
         SysUser user = userMapper.selectOne(
                 new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, request.getUsername())
@@ -129,4 +137,3 @@ public class AuthServiceImpl implements AuthService {
         return "auth:lock:user:" + username;
     }
 }
-

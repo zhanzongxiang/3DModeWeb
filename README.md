@@ -10,18 +10,25 @@
 * **模型检索**：列表页支持按“类型”、“名称”、“作品名”进行多维度的**模糊查询**。
 * **安全与并发保障**：需要防范爬虫撞库（Credential Stuffing）及突发的高并发访问。
 
-## 2. 架构设计与技术栈
-本项目采用前后端分离架构，结合分布式缓存应对高并发，并建立纵深防御体系保障数据安全。
-* * **前端 (Frontend)**：
-  * 框架：Vue 3 (Composition API) + Vite + TypeScript
-  * 状态管理 & 路由：Pinia + Vue Router
-  * **UI/UX 与视觉风格 (极致致敬 MakerWorld)：**
-    * **核心布局（新增）**：采用类似 MakerWorld 的左右分栏结构。左侧是一个包含 Logo、图标导航、底部社交链接和页脚的可收缩侧边栏（Sidebar/Nav Rail），支持展开与收起；右侧为主内容区。
-    * **页面特定逻辑（新增）**：
-      * **“推荐页”（首页）**：顶部必须有一个突出的模型 Banner（类似截图中的 Parrot Puzzle 示例），下方是模型列表。
-      * **“所有其他页面”**（如分类页、搜索页）：直接展示模型列表，无需顶部的 Banner。
-    * **视觉规范**：白色或极浅灰色（bg-gray-50）背景，大圆角卡片（Card UI），大量的留白，悬浮时的柔和阴影，干净现代。
-  * 样式库：Tailwind CSS。
+### 2. 架构设计与技术栈
+* **前端 (Frontend)**：Vue 3 + Vite + TS + Tailwind CSS
+* **像素级 UI 规范 (基于 MakerWorld 截图严格提取)**：
+  * **全局色彩 (Colors)**：
+    * 主背景色 (Main Canvas)：极浅灰 `bg-[#f4f5f7]`，用于衬托纯白色的卡片。
+    * 侧边栏/顶栏背景：纯白 `bg-white`。
+    * 文本主色：深黑灰 `text-[#1c1e21]` (标题)；中灰 `text-[#8a8d93]` (作者、数据统计等次要信息)。
+    * 品牌高亮/点缀：鲜活绿 `text-[#00AE42]` / `bg-[#00AE42]` (参考截图中的绿色箭头和图标)。
+    * 激活状态块 (Active Pill)：深黑 `bg-[#252525]` + 白字 `text-white` (参考“推荐”分类按钮)。
+  * **全局圆角 (Border Radius)**：
+    * 模型卡片/Banner 主图：大圆角 `rounded-[16px]` 或 `rounded-2xl`。
+    * 搜索框/分类 Tag/按钮：全圆角 `rounded-full`。
+  * **布局尺寸 (Layout Metrics)**：
+    * 左侧边栏 (Sidebar)：展开宽度约 `w-60` (240px)，内边距 `p-4`，菜单项间距紧凑 `space-y-1`。
+    * 顶部导航 (Header)：高度约 `h-16`，左侧对齐搜索框，搜索框极宽 (占据约 60% 剩余空间)。
+  * **字体排版 (Typography)**：
+    * 导航与分类文字：小号粗体 `text-[14px] font-semibold`。
+    * 卡片标题：`text-[15px] font-medium leading-tight`，最多显示两行，超出省略 (`line-clamp-2`)。
+    * 数据统计：极小号 `text-[12px]`，结合极简线面图标。
 * **后端 (Backend)**：
     * 核心框架：Java 17/21 + Spring Boot 3
     * 安全防范：Spring Security + JWT
@@ -53,7 +60,26 @@
 * `disk_link`: VARCHAR (夸克网盘链接)
 * `is_free`: TINYINT (0-收费, 1-免费)
 * `create_time`: DATETIME
+* `print_layer_height`: DECIMAL(3,2) (推荐层高)
+* `print_infill`: INT (填充率 0-100)
+* `print_support`: TINYINT (0-不需要, 1-需要)
+* `print_material`: VARCHAR (建议材质，如 PLA/PETG)
+* `license_type`: VARCHAR (CC 协议代码，如 CC-BY-NC)
 * *索引设计*：对 `type`, `name`, `artwork_name` 建立适当的索引以优化模糊查询。
+
+**tb_make (作品秀表 - New)**
+* `id`: BIGINT (PK)
+* `model_id`: BIGINT (关联模型)
+* `user_id`: BIGINT (上传者)
+* `image_url`: VARCHAR (实物图链接)
+* `description`: TEXT (心得描述)
+* `create_time`: DATETIME
+
+**tb_collection (收藏表 - New)**
+* `id`: BIGINT (PK)
+* `user_id`: BIGINT
+* `model_id`: BIGINT
+* `create_time`: DATETIME
 
 ## 5. 已生成项目结构
 ```text

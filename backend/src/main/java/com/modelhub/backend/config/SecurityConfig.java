@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/models/**", "/api/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/models/**", "/api/makes/**", "/api/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -64,4 +64,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

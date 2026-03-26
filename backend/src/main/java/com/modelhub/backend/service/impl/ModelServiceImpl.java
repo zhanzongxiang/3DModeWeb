@@ -45,6 +45,11 @@ public class ModelServiceImpl implements ModelService {
         model.setImageUrls(request.getImageUrls());
         model.setDiskLink(request.getDiskLink());
         model.setIsFree(request.getIsFree());
+        model.setPrintLayerHeight(request.getPrintLayerHeight());
+        model.setPrintInfill(request.getPrintInfill());
+        model.setPrintSupport(request.getPrintSupport());
+        model.setPrintMaterial(request.getPrintMaterial());
+        model.setLicenseType(request.getLicenseType());
         model.setCreateTime(LocalDateTime.now());
         modelMapper.insert(model);
 

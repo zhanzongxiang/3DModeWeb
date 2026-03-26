@@ -20,6 +20,7 @@ export interface LoginData {
 export interface RegisterRequest {
   username: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface ModelItem {
@@ -31,6 +32,11 @@ export interface ModelItem {
   imageUrls: string;
   diskLink: string;
   isFree: number;
+  printLayerHeight?: number;
+  printInfill?: number;
+  printSupport?: number;
+  printMaterial?: string;
+  licenseType?: string;
   createTime: string;
 }
 
@@ -48,9 +54,33 @@ export interface CreateModelRequest {
   imageUrls: string;
   diskLink: string;
   isFree: number;
+  printLayerHeight?: number;
+  printInfill?: number;
+  printSupport?: number;
+  printMaterial?: string;
+  licenseType?: string;
 }
 
 export interface OssUploadData {
   url: string;
 }
 
+export interface MakeItem {
+  id: number;
+  modelId: number;
+  userId: number;
+  imageUrl: string;
+  description?: string;
+  createTime: string;
+}
+
+export interface CollectionToggleData {
+  collected: boolean;
+}
+
+export interface CollectionItem {
+  id: number;
+  userId: number;
+  modelId: number;
+  createTime: string;
+}

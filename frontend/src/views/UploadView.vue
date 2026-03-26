@@ -1,8 +1,8 @@
 <template>
   <section class="grid gap-6 xl:grid-cols-[1fr_320px]">
     <form class="surface-panel space-y-5 p-6" @submit.prevent="submit">
-      <h1 class="font-display text-3xl font-bold text-text-main">发布模型</h1>
-      <p class="text-sm text-text-sub">填写模型信息并上传展示图，支持 OSS 自动生成链接。</p>
+      <h1 class="font-display text-3xl font-bold text-primary-text">发布模型</h1>
+      <p class="text-sm text-muted">填写模型信息、打印参数和协议信息，支持 OSS 自动上传图片。</p>
 
       <div class="grid gap-4 md:grid-cols-2">
         <div>
@@ -34,6 +34,41 @@
         </select>
       </div>
 
+      <el-form label-position="top" class="surface-panel border border-soft-border p-4 !shadow-none">
+        <el-form-item label="推荐层高 (mm)">
+          <el-input-number v-model="form.printLayerHeight" :min="0.05" :max="0.4" :step="0.05" :precision="2" />
+        </el-form-item>
+
+        <el-form-item label="填充率 (%)">
+          <el-slider v-model="form.printInfill" :min="0" :max="100" :step="5" show-input />
+        </el-form-item>
+
+        <el-form-item label="是否需要支撑">
+          <el-switch
+            v-model="supportSwitch"
+            inline-prompt
+            active-text="需要"
+            inactive-text="不需要"
+            @change="onSupportChange"
+          />
+        </el-form-item>
+
+        <el-form-item label="建议材质">
+          <el-select v-model="form.printMaterial" placeholder="选择材质" class="w-full">
+            <el-option label="PLA" value="PLA" />
+            <el-option label="PETG" value="PETG" />
+            <el-option label="ABS" value="ABS" />
+            <el-option label="TPU" value="TPU" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="版权协议">
+          <el-select v-model="form.licenseType" placeholder="选择协议" class="w-full">
+            <el-option v-for="item in licenseOptions" :key="item" :label="item" :value="item" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+
       <div class="space-y-3">
         <label class="label">展示图片</label>
         <div class="space-y-2">
@@ -46,9 +81,9 @@
           />
           <button type="button" class="btn-secondary" @click="imageUrls.push('')">+ 添加图片链接</button>
         </div>
-        <div class="rounded-2xl border border-neutral-border bg-neutral-bg p-3">
+        <div class="rounded-card border border-soft-border bg-gray-50 p-3">
           <input type="file" accept="image/*" @change="onFileSelect" />
-          <p class="mt-2 text-xs text-text-sub">可直接上传到 OSS 自动生成 URL</p>
+          <p class="mt-2 text-[12px] text-muted">可直接上传到 OSS 自动生成 URL</p>
         </div>
       </div>
 
@@ -56,17 +91,16 @@
         {{ loading ? "发布中..." : "确认发布" }}
       </button>
 
-      <p v-if="message" class="text-sm text-brand-green">{{ message }}</p>
+      <p v-if="message" class="text-sm text-brand">{{ message }}</p>
       <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
     </form>
 
     <aside class="surface-panel h-fit p-6">
-      <h2 class="font-display text-xl font-bold text-text-main">发布提示</h2>
-      <ul class="mt-4 space-y-2 text-sm text-text-sub">
-        <li>1. 模型类型建议使用统一词汇，便于检索。</li>
-        <li>2. `imageUrls` 会以 JSON 字符串提交到后端。</li>
-        <li>3. 付费模型请在网盘链接中标注获取条件。</li>
-        <li>4. 登录页已预留行为验证码 Token 字段。</li>
+      <h2 class="font-display text-xl font-bold text-primary-text">发布提示</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted">
+        <li>1. 打印参数会用于详情页的“打印建议”面板。</li>
+        <li>2. 协议信息会在模型卡片和详情页显示。</li>
+        <li>3. `imageUrls` 以 JSON 字符串提交到后端。</li>
       </ul>
     </aside>
   </section>
@@ -81,13 +115,25 @@ const loading = ref(false);
 const message = ref("");
 const error = ref("");
 const imageUrls = ref<string[]>([""]);
+const supportSwitch = ref(false);
+const licenseOptions = ["CC BY", "CC BY-NC", "CC BY-ND", "CC BY-SA"];
+
 const form = reactive({
   name: "",
   artworkName: "",
   type: "",
   diskLink: "",
   isFree: 1,
+  printLayerHeight: 0.2,
+  printInfill: 20,
+  printSupport: 0,
+  printMaterial: "PLA",
+  licenseType: "CC BY-NC",
 });
+
+function onSupportChange(value: boolean | string | number) {
+  form.printSupport = value ? 1 : 0;
+}
 
 async function onFileSelect(event: Event) {
   const input = event.target as HTMLInputElement;
@@ -129,6 +175,11 @@ async function submit() {
       diskLink: form.diskLink,
       isFree: form.isFree,
       imageUrls: JSON.stringify(validImageUrls),
+      printLayerHeight: form.printLayerHeight,
+      printInfill: form.printInfill,
+      printSupport: form.printSupport,
+      printMaterial: form.printMaterial,
+      licenseType: form.licenseType,
     });
     message.value = "发布成功";
     form.name = "";
@@ -136,6 +187,12 @@ async function submit() {
     form.type = "";
     form.diskLink = "";
     form.isFree = 1;
+    form.printLayerHeight = 0.2;
+    form.printInfill = 20;
+    form.printSupport = 0;
+    form.printMaterial = "PLA";
+    form.licenseType = "CC BY-NC";
+    supportSwitch.value = false;
     imageUrls.value = [""];
   } catch (e) {
     error.value = e instanceof Error ? e.message : "发布失败";

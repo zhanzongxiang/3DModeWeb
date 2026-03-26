@@ -1,85 +1,104 @@
 <template>
-  <div class="page-bg min-h-screen">
+  <div class="app-shell flex">
     <aside
-      class="fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-neutral-border bg-white md:flex"
-      :class="collapsed ? 'w-20' : 'w-64'"
+      class="left-rail hidden shrink-0 flex-col overflow-hidden md:flex"
+      :class="collapsed ? 'w-16' : 'w-[240px]'"
     >
-      <div class="flex h-16 items-center justify-between border-b border-neutral-border px-4">
-        <RouterLink to="/" class="font-display text-base font-bold text-text-main" :class="collapsed ? 'hidden' : ''">
-          Model Hub
-        </RouterLink>
-        <button class="btn-secondary h-8 w-8 !p-0 text-xs" @click="collapsed = !collapsed">
-          {{ collapsed ? ">" : "<" }}
-        </button>
+      <div class="flex h-16 items-center gap-2 px-4">
+        <button class="btn-secondary h-7 w-7 !p-0 text-[12px]" @click="collapsed = !collapsed">[]</button>
+        <span v-if="!collapsed" class="text-[14px] font-semibold text-primary-text">3D Model Hub</span>
       </div>
 
-      <nav class="flex-1 space-y-1 px-3 py-4">
-        <RouterLink class="side-item" :class="collapsed ? 'justify-center' : ''" to="/">
-          <span class="side-icon">R</span>
+      <nav class="space-y-1 px-3 py-2">
+        <RouterLink class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/">
+          <span class="rail-icon">R</span>
           <span v-if="!collapsed">推荐</span>
         </RouterLink>
-        <RouterLink class="side-item" :class="collapsed ? 'justify-center' : ''" to="/hall">
-          <span class="side-icon">E</span>
-          <span v-if="!collapsed">发现</span>
+        <RouterLink class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/hall">
+          <span class="rail-icon">H</span>
+          <span v-if="!collapsed">全部模型</span>
         </RouterLink>
-        <RouterLink class="side-item" :class="collapsed ? 'justify-center' : ''" to="/upload">
-          <span class="side-icon">U</span>
+        <RouterLink class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/upload">
+          <span class="rail-icon">U</span>
           <span v-if="!collapsed">上传</span>
         </RouterLink>
         <RouterLink
-          v-if="!authStore.isLoggedIn"
-          class="side-item"
+          v-if="authStore.isLoggedIn"
+          class="rail-item"
           :class="collapsed ? 'justify-center' : ''"
-          to="/login"
+          to="/collections"
         >
-          <span class="side-icon">L</span>
+          <span class="rail-icon">C</span>
+          <span v-if="!collapsed">我的收藏</span>
+        </RouterLink>
+        <RouterLink v-if="!authStore.isLoggedIn" class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/login">
+          <span class="rail-icon">L</span>
           <span v-if="!collapsed">登录</span>
         </RouterLink>
       </nav>
 
-      <div class="space-y-2 border-t border-neutral-border px-3 py-3">
-        <div class="flex gap-2" :class="collapsed ? 'justify-center' : ''">
-          <a class="social-dot" href="https://github.com" target="_blank" rel="noreferrer">G</a>
-          <a class="social-dot" href="https://x.com" target="_blank" rel="noreferrer">X</a>
-          <a class="social-dot" href="https://discord.com" target="_blank" rel="noreferrer">D</a>
+      <div class="mt-auto border-t border-soft-border px-3 py-3">
+        <div class="flex items-center gap-2" :class="collapsed ? 'justify-center' : ''">
+          <a class="rail-icon" href="https://github.com" target="_blank" rel="noreferrer">G</a>
+          <a class="rail-icon" href="https://x.com" target="_blank" rel="noreferrer">X</a>
+          <a class="rail-icon" href="https://discord.com" target="_blank" rel="noreferrer">D</a>
         </div>
-        <p v-if="!collapsed" class="text-center text-xs text-text-sub">© 2026 Model Hub</p>
+        <p v-if="!collapsed" class="mt-2 text-center text-[12px] text-muted">© 2026 Model Hub</p>
       </div>
     </aside>
 
-    <div class="transition-all duration-200" :class="collapsed ? 'md:pl-20' : 'md:pl-64'">
-      <header class="header-nav sticky top-0 z-30">
-        <div class="page-container py-3">
-          <div class="flex items-center gap-3">
-            <RouterLink to="/" class="brand-title md:hidden">Model Hub</RouterLink>
+    <section class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <header class="header-wrap">
+        <div class="flex h-16 items-center gap-3 px-4 md:px-6">
+          <RouterLink to="/" class="text-[14px] font-semibold text-primary-text md:hidden">Model Hub</RouterLink>
 
-            <form class="mx-auto w-full max-w-[760px]" @submit.prevent="submitSearch">
+          <form class="w-full max-w-[820px]" @submit.prevent="submitSearch">
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20L17 17"></path>
+              </svg>
               <input
                 v-model="keyword"
                 class="search-input"
                 placeholder="搜索模型名称 / 作品名 / 类型"
               />
-            </form>
+              <button class="camera-btn" type="button">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 7h3l2-2h6l2 2h3v12H4z"></path>
+                  <circle cx="12" cy="13" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
 
-            <nav class="hidden items-center gap-2 lg:flex">
-              <button class="tab-link" :class="activeType === '全部' ? 'tab-link-active' : ''" @click="setType('全部')">
-                全部
-              </button>
-              <button class="tab-link" :class="activeType === '角色' ? 'tab-link-active' : ''" @click="setType('角色')">
-                角色
-              </button>
-              <button class="tab-link" :class="activeType === '场景' ? 'tab-link-active' : ''" @click="setType('场景')">
-                场景
-              </button>
-            </nav>
-          </div>
+        <div class="flex items-center gap-2 overflow-x-auto px-4 pb-3 md:px-6">
+          <button class="chip whitespace-nowrap" :class="activeType === '推荐' ? 'chip-active' : ''" @click="setType('推荐')">
+            推荐
+          </button>
+          <button class="chip whitespace-nowrap" :class="activeType === '热门' ? 'chip-active' : ''" @click="setType('热门')">
+            热门
+          </button>
+          <button class="chip whitespace-nowrap" :class="activeType === '角色' ? 'chip-active' : ''" @click="setType('角色')">
+            角色
+          </button>
+          <button class="chip whitespace-nowrap" :class="activeType === '场景' ? 'chip-active' : ''" @click="setType('场景')">
+            场景
+          </button>
+          <button class="chip whitespace-nowrap" :class="activeType === '道具' ? 'chip-active' : ''" @click="setType('道具')">
+            道具
+          </button>
+          <button class="chip whitespace-nowrap" :class="activeType === '全部' ? 'chip-active' : ''" @click="setType('全部')">
+            全部
+          </button>
         </div>
       </header>
 
-      <main class="page-container py-6 md:py-8">
+      <main class="flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8">
         <RouterView />
       </main>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -125,6 +144,10 @@ function setType(type: string) {
   }
   if (type !== "全部") {
     query.type = type;
+  }
+  if (type === "推荐") {
+    router.push({ path: "/", query });
+    return;
   }
   router.push({ path: "/hall", query });
 }

@@ -41,7 +41,7 @@ public class S3OssServiceImpl implements OssService {
                     .contentType(contentType)
                     .build();
             s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
-            return toPublicUrl(key);
+            return toPublicUrl(key, contentType);
         } catch (IOException e) {
             throw new com.modelhub.backend.common.BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "upload failed");
         }
@@ -60,12 +60,34 @@ public class S3OssServiceImpl implements OssService {
                 + "/" + UUID.randomUUID() + suffix;
     }
 
-    private String toPublicUrl(String key) {
+    private String toPublicUrl(String key, String contentType) {
         String base = ossProperties.getPublicBaseUrl();
+        String url;
         if (base != null && !base.isBlank()) {
-            return trimRightSlash(base) + "/" + key;
+            url = trimRightSlash(base) + "/" + key;
+        } else {
+            url = trimRightSlash(ossProperties.getEndpoint()) + "/" + ossProperties.getBucket() + "/" + key;
         }
-        return trimRightSlash(ossProperties.getEndpoint()) + "/" + ossProperties.getBucket() + "/" + key;
+        if (shouldAppendWebpQuery(contentType)) {
+            return appendQuery(url, ossProperties.getWebpQuery());
+        }
+        return url;
+    }
+
+    private boolean shouldAppendWebpQuery(String contentType) {
+        return contentType != null
+                && contentType.startsWith("image/")
+                && !"image/webp".equalsIgnoreCase(contentType);
+    }
+
+    private String appendQuery(String url, String query) {
+        if (query == null || query.isBlank()) {
+            return url;
+        }
+        if (url.contains(query)) {
+            return url;
+        }
+        return url + (url.contains("?") ? "&" : "?") + query;
     }
 
     private String trimRightSlash(String raw) {
@@ -75,4 +97,3 @@ public class S3OssServiceImpl implements OssService {
         return raw.endsWith("/") ? raw.substring(0, raw.length() - 1) : raw;
     }
 }
-

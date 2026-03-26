@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @TableName("tb_model")
@@ -17,6 +18,11 @@ public class TbModel {
     private String imageUrls;
     private String diskLink;
     private Integer isFree;
+    private BigDecimal printLayerHeight;
+    private Integer printInfill;
+    private Integer printSupport;
+    private String printMaterial;
+    private String licenseType;
     private LocalDateTime createTime;
 
     public Long getId() {
@@ -83,6 +89,46 @@ public class TbModel {
         this.isFree = isFree;
     }
 
+    public BigDecimal getPrintLayerHeight() {
+        return printLayerHeight;
+    }
+
+    public void setPrintLayerHeight(BigDecimal printLayerHeight) {
+        this.printLayerHeight = printLayerHeight;
+    }
+
+    public Integer getPrintInfill() {
+        return printInfill;
+    }
+
+    public void setPrintInfill(Integer printInfill) {
+        this.printInfill = printInfill;
+    }
+
+    public Integer getPrintSupport() {
+        return printSupport;
+    }
+
+    public void setPrintSupport(Integer printSupport) {
+        this.printSupport = printSupport;
+    }
+
+    public String getPrintMaterial() {
+        return printMaterial;
+    }
+
+    public void setPrintMaterial(String printMaterial) {
+        this.printMaterial = printMaterial;
+    }
+
+    public String getLicenseType() {
+        return licenseType;
+    }
+
+    public void setLicenseType(String licenseType) {
+        this.licenseType = licenseType;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -91,4 +137,3 @@ public class TbModel {
         this.createTime = createTime;
     }
 }
-

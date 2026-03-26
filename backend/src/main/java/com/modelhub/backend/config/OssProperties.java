@@ -10,6 +10,7 @@ public class OssProperties {
     private String secretKey;
     private String bucket;
     private String publicBaseUrl;
+    private String webpQuery;
 
     public String getEndpoint() {
         return endpoint;
@@ -58,5 +59,12 @@ public class OssProperties {
     public void setPublicBaseUrl(String publicBaseUrl) {
         this.publicBaseUrl = publicBaseUrl;
     }
-}
 
+    public String getWebpQuery() {
+        return webpQuery;
+    }
+
+    public void setWebpQuery(String webpQuery) {
+        this.webpQuery = webpQuery;
+    }
+}
