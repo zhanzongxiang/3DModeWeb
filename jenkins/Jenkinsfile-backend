@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = 'registry.cn-shenzhen.aliyuncs.com'
+        REGISTRY_NAMESPACE = '3dmodel'
+        BACKEND_IMAGE = 'modelhub-backend'
+        FRONTEND_IMAGE = 'modelhub-frontend'
+        GIT_TOKEN = credentials('github_token')
+    }
+
+    stages {
+        stage('Clone Backend') {
+            steps {
+                dir('/root/3dmodel-deploy/backend') {
+                    git branch: 'main',
+                        credentialsId: 'github-token',
+                        url: 'https://github.com/zhanzongxiang/3DModeWeb.git'
+                }
+            }
+        }
+
+        stage('Build Backend Docker Image') {
+            steps {
+                dir('/root/3dmodel-deploy/backend/backend') {
+                    script {
+                        def imageTag = "${REGISTRY}/${REGISTRY_NAMESPACE}/${BACKEND_IMAGE}:${env.BUILD_NUMBER}"
+                        sh """
+                            docker build -t ${BACKEND_IMAGE}:latest .
+                            docker tag ${BACKEND_IMAGE}:latest ${imageTag}
+                        """
+                        env.BACKEND_IMAGE_TAG = imageTag
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                dir('/root/3dmodel-deploy/backend') {
+                    sh '''
+                        # Stop and remove old container if exists
+                        docker rm -f modelhub-backend 2>/dev/null || true
+                        
+                        # Run new container with existing MySQL/Redis/MinIO
+                        docker run -d \
+                            --name modelhub-backend \
+                            --network host \
+                            -e DB_HOST=127.0.0.1 \
+                            -e DB_PORT=3306 \
+                            -e DB_NAME=model_hub \
+                            -e DB_USERNAME=root \
+                            -e DB_PASSWORD=root \
+                            -e REDIS_HOST=127.0.0.1 \
+                            -e REDIS_PORT=6379 \
+                            -e OSS_ENDPOINT=http://127.0.0.1:9000 \
+                            -e OSS_REGION=us-east-1 \
+                            -e OSS_ACCESS_KEY=minioadmin \
+                            -e OSS_SECRET_KEY=minioadmin \
+                            -e OSS_BUCKET=model-hub \
+                            -e OSS_PUBLIC_BASE_URL=http://localhost:9000/model-hub \
+                            -e JWT_SECRET=change-this-to-a-long-random-secret-at-least-32-bytes \
+                            -e JWT_EXPIRATION_SECONDS=7200 \
+                            --restart unless-stopped \
+                            ${BACKEND_IMAGE}:latest
+                    '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Backend deployed successfully!'
+        }
+        failure {
+            echo 'Backend deployment failed!'
+        }
+    }
+}
