@@ -14,7 +14,7 @@ npm run build
     stage("Deploy to Server A") {
         sh """
 mkdir -p /root/nginxWEB
-rsync -avz --delete dist/ root@47.113.126.29:/root/nginxWEB/
+rsync -avz --delete frontend/dist/ root@47.113.126.29:/root/nginxWEB/
         """
     }
     stage("Reload Nginx") {
