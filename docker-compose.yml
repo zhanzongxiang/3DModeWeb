@@ -1,28 +1,49 @@
 version: "3.9"
+
 services:
+  # ================================================================
+  # 1. 业务应用部分 (ModelHub)
+  # ================================================================
   mysql:
     image: mysql:8.4
     container_name: modelhub-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: model_hub
     ports:
       - "3306:3306"
     volumes:
-      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      - mysql_data:/var/lib/mysql
+      - /root/modelhub/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - /root/modelhub/mysql/data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - modelhub_net
 
   redis:
     image: redis:7.2
     container_name: modelhub-redis
+    restart: always
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - /root/modelhub/redis/data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - modelhub_net
 
   minio:
     image: minio/minio:latest
     container_name: modelhub-minio
+    restart: always
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -31,16 +52,20 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
+      - /root/modelhub/minio/data:/data
+    networks:
+      - modelhub_net
 
   backend:
     build:
       context: ./backend
     container_name: modelhub-backend
+    restart: on-failure
     depends_on:
-      - mysql
-      - redis
-      - minio
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -55,21 +80,52 @@ services:
       OSS_SECRET_KEY: minioadmin
       OSS_BUCKET: model-hub
       OSS_PUBLIC_BASE_URL: http://localhost:9000/model-hub
-      JWT_SECRET: change-this-to-a-long-random-secret-at-least-32-bytes
-      JWT_EXPIRATION_SECONDS: 7200
+      JWT_SECRET: change-this-secret-123456
     ports:
       - "8080:8080"
+    networks:
+      - modelhub_net
 
   frontend:
     build:
       context: ./frontend
     container_name: modelhub-frontend
+    restart: always
     depends_on:
       - backend
     ports:
       - "5173:80"
+    networks:
+      - modelhub_net
 
-volumes:
-  mysql_data:
-  redis_data:
-  minio_data:
+  # ================================================================
+  # 2. 运维与 CICD 部分 (集成 Jenkins & Portainer)
+  # ================================================================
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins-lts
+    restart: always
+    user: root # 方便在容器内调用宿主机 docker 命令
+    ports:
+      - "8001:8080"  # ⚠️ 注意：如果 8080 被后端占用，这里改用 8008 访问 Jenkins
+      - "50000:50000"
+    volumes:
+      - /root/modelhub/jenkins/home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock # 允许 Jenkins 调用宿主机 Docker
+    networks:
+      - modelhub_net
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/modelhub/portainer/data:/data
+    networks:
+      - modelhub_net
+networks:
+  modelhub_net:
+    driver: bridge

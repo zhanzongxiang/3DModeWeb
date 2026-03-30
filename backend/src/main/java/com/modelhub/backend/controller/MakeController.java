@@ -6,6 +6,10 @@ import com.modelhub.backend.dto.make.MakeCreateRequest;
 import com.modelhub.backend.dto.make.MakeView;
 import com.modelhub.backend.security.AuthenticatedUser;
 import com.modelhub.backend.service.MakeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -20,6 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/makes")
+@Tag(name = "Makes", description = "Printed work showcase APIs")
 public class MakeController {
     private final MakeService makeService;
 
@@ -28,13 +33,18 @@ public class MakeController {
     }
 
     @PostMapping
-    public ApiResponse<Void> create(@Valid @RequestBody MakeCreateRequest request, Authentication authentication) {
+    @Operation(summary = "Create a make entry", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ApiResponse<Void> create(
+            @Valid @RequestBody MakeCreateRequest request,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
         AuthenticatedUser user = requireUser(authentication);
         makeService.create(user.getId(), request);
         return ApiResponse.success("make upload success", null);
     }
 
     @GetMapping
+    @Operation(summary = "List makes by model ID")
     public ApiResponse<List<MakeView>> listByModel(@RequestParam("modelId") Long modelId) {
         return ApiResponse.success(makeService.listByModelId(modelId));
     }
@@ -50,4 +60,3 @@ public class MakeController {
         return user;
     }
 }
-
