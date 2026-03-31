@@ -5,11 +5,14 @@ import com.modelhub.backend.common.BusinessException;
 import com.modelhub.backend.dto.auth.LoginRequest;
 import com.modelhub.backend.dto.auth.LoginResponse;
 import com.modelhub.backend.dto.auth.RegisterRequest;
+import com.modelhub.backend.entity.SysLoginLog;
 import com.modelhub.backend.entity.SysUser;
+import com.modelhub.backend.mapper.SysLoginLogMapper;
 import com.modelhub.backend.mapper.SysUserMapper;
 import com.modelhub.backend.security.JwtTokenProvider;
 import com.modelhub.backend.service.AuthService;
 import com.modelhub.backend.service.TurnstileService;
+import com.modelhub.backend.service.admin.AccessControlService;
 import com.modelhub.backend.util.RequestIpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Set;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -31,6 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TurnstileService turnstileService;
+    private final AccessControlService accessControlService;
+    private final SysLoginLogMapper loginLogMapper;
     private final RedisTemplate<String, Object> redisTemplate;
     private final HttpServletRequest request;
 
@@ -39,6 +46,8 @@ public class AuthServiceImpl implements AuthService {
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
             TurnstileService turnstileService,
+            AccessControlService accessControlService,
+            SysLoginLogMapper loginLogMapper,
             RedisTemplate<String, Object> redisTemplate,
             HttpServletRequest request
     ) {
@@ -46,6 +55,8 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.turnstileService = turnstileService;
+        this.accessControlService = accessControlService;
+        this.loginLogMapper = loginLogMapper;
         this.redisTemplate = redisTemplate;
         this.request = request;
     }
@@ -65,8 +76,12 @@ public class AuthServiceImpl implements AuthService {
 
         SysUser user = new SysUser();
         user.setUsername(request.getUsername());
+        user.setNickname(request.getUsername());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setStatus(1);
+        user.setOrgId(1L);
         user.setCreateTime(LocalDateTime.now());
+        user.setUpdateTime(LocalDateTime.now());
         userMapper.insert(user);
     }
 
@@ -81,13 +96,28 @@ public class AuthServiceImpl implements AuthService {
         );
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             recordFailure(ip, request.getUsername());
+            saveLoginLog(null, request.getUsername(), ip, 0, "invalid username or password");
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "invalid username or password");
+        }
+        if (user.getStatus() != null && user.getStatus() != 1) {
+            saveLoginLog(user.getId(), request.getUsername(), ip, 0, "user disabled");
+            throw new BusinessException(HttpStatus.FORBIDDEN, "user disabled");
         }
 
         clearFailure(ip, request.getUsername());
+        user.setLastLoginTime(LocalDateTime.now());
+        userMapper.updateById(user);
+
+        Set<String> roleCodes = accessControlService.listUserRoleCodes(user.getId());
+        Set<String> permissions = accessControlService.listUserApiPermCodes(user.getId());
         String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername());
         long expiresAt = System.currentTimeMillis() + jwtTokenProvider.getExpirationSeconds() * 1000;
-        return new LoginResponse(token, expiresAt, user.getId(), user.getUsername());
+        LoginResponse response = new LoginResponse(token, expiresAt, user.getId(), user.getUsername());
+        response.setOrgId(user.getOrgId());
+        response.setRoles(new ArrayList<>(roleCodes));
+        response.setPermissions(new ArrayList<>(permissions));
+        saveLoginLog(user.getId(), request.getUsername(), ip, 1, "login success");
+        return response;
     }
 
     private void checkLocked(String ip, String username) {
@@ -135,5 +165,17 @@ public class AuthServiceImpl implements AuthService {
 
     private String lockUserKey(String username) {
         return "auth:lock:user:" + username;
+    }
+
+    private void saveLoginLog(Long userId, String username, String ip, int status, String message) {
+        SysLoginLog log = new SysLoginLog();
+        log.setUserId(userId);
+        log.setUsername(username);
+        log.setIp(ip);
+        log.setUserAgent(request.getHeader("User-Agent"));
+        log.setStatus(status);
+        log.setMessage(message);
+        log.setCreateTime(LocalDateTime.now());
+        loginLogMapper.insert(log);
     }
 }
