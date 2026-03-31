@@ -113,6 +113,18 @@ mvn spring-boot:run
 docker compose up -d --build
 ```
 
+### 7.1 后台基础账号与角色初始化 SQL
+后台治理能力初始化可执行：
+
+```bash
+backend/sql/admin_seed_basic.sql
+```
+
+默认会初始化：
+* 超级管理员账号 `superadmin`
+* 基础角色：`SUPER_ADMIN`、`PLATFORM_ADMIN`、`OPS_OPERATOR`、`SEC_AUDITOR`
+* 超级管理员与基础角色授权关系
+
 ## 8. 后台治理能力规划（用户 / 角色 / 组织）
 
 为支持平台级后台运营，新增“用户管理、角色管理、组织管理”能力，作为后端管理域新模块，规范如下：
