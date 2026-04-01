@@ -7,9 +7,9 @@
 
     <div class="surface-panel p-5">
       <p v-if="loading" class="text-[12px] text-muted">加载中...</p>
-      <p v-if="!loading && !items.length" class="text-[12px] text-muted">暂无收藏。</p>
+      <p v-else-if="!items.length" class="text-[12px] text-muted">暂无收藏。</p>
 
-      <div class="space-y-2">
+      <div v-else class="space-y-2">
         <RouterLink
           v-for="item in items"
           :key="item.id"

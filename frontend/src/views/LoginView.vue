@@ -31,6 +31,10 @@
           还没有账号？
           <RouterLink class="text-brand hover:underline" to="/register">去注册</RouterLink>
         </p>
+        <p class="text-[12px] text-muted">
+          忘记密码？
+          <RouterLink class="text-brand hover:underline" to="/forgot-password">重置密码</RouterLink>
+        </p>
         <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
       </form>
     </div>
@@ -81,7 +85,14 @@ async function submit() {
       password: form.password,
       captchaToken: captchaToken.value || undefined,
     });
-    authStore.setAuth({ token: data.token, userId: data.userId, username: data.username });
+    authStore.setAuth({
+      token: data.token,
+      userId: data.userId,
+      username: data.username,
+      orgId: data.orgId,
+      roles: data.roles ?? [],
+      permissions: data.permissions ?? [],
+    });
     await router.push("/hall");
   } catch (e) {
     error.value = e instanceof Error ? e.message : "登录失败";

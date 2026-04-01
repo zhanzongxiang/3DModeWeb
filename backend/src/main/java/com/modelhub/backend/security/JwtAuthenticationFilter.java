@@ -1,24 +1,39 @@
 package com.modelhub.backend.security;
 
+import com.modelhub.backend.entity.SysUser;
+import com.modelhub.backend.mapper.SysUserMapper;
+import com.modelhub.backend.service.admin.AccessControlService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
+    private final SysUserMapper userMapper;
+    private final AccessControlService accessControlService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(
+            JwtTokenProvider jwtTokenProvider,
+            SysUserMapper userMapper,
+            AccessControlService accessControlService
+    ) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userMapper = userMapper;
+        this.accessControlService = accessControlService;
     }
 
     @Override
@@ -28,9 +43,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Long userId = jwtTokenProvider.getUserId(token);
             String username = jwtTokenProvider.getUsername(token);
-            AuthenticatedUser principal = new AuthenticatedUser(userId, username);
+            SysUser user = userId == null ? null : userMapper.selectById(userId);
+            if (user == null || user.getStatus() == null || user.getStatus() != 1) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            Set<String> permCodes = accessControlService.listUserApiPermCodes(userId);
+            List<GrantedAuthority> authorities = permCodes.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+            AuthenticatedUser principal = new AuthenticatedUser(userId, username, user.getOrgId());
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
@@ -46,4 +71,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-

@@ -15,12 +15,40 @@ export interface LoginData {
   expiresAt: number;
   userId: number;
   username: string;
+  orgId?: number;
+  roles?: string[];
+  permissions?: string[];
 }
 
 export interface RegisterRequest {
   username: string;
   password: string;
   captchaToken?: string;
+}
+
+export interface ForgotPasswordCodeRequest {
+  username: string;
+  captchaToken?: string;
+}
+
+export interface ForgotPasswordCodeData {
+  expiresInSeconds: number;
+  devCode?: string;
+}
+
+export interface ForgotPasswordResetRequest {
+  username: string;
+  code: string;
+  newPassword: string;
+  captchaToken?: string;
+}
+
+export interface AccountSecurityProfileData {
+  username: string;
+  email?: string;
+  emailVerified: number;
+  mobile?: string;
+  mobileVerified: number;
 }
 
 export interface ModelItem {
@@ -83,4 +111,81 @@ export interface CollectionItem {
   userId: number;
   modelId: number;
   createTime: string;
+}
+
+export interface PageResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+export interface OrgNode {
+  id: number;
+  parentId: number;
+  name: string;
+  code?: string;
+  leaderUserId?: number;
+  status: number;
+  sort: number;
+  ancestors: string;
+  children: OrgNode[];
+}
+
+export interface RoleItem {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  status: number;
+  dataScopeType: string;
+  isSystem: number;
+  menuIds: number[];
+  apiIds: number[];
+  customOrgIds: number[];
+}
+
+export interface AdminUserItem {
+  id: number;
+  username: string;
+  nickname?: string;
+  realName?: string;
+  mobile?: string;
+  email?: string;
+  status: number;
+  orgId?: number;
+  lastLoginTime?: string;
+  createTime: string;
+  updateTime: string;
+  roleIds: number[];
+  roleCodes: string[];
+}
+
+export interface MenuResourceItem {
+  id: number;
+  parentId: number;
+  name: string;
+  path?: string;
+  component?: string;
+  permCode?: string;
+  sort: number;
+  visible: number;
+  status: number;
+}
+
+export interface ApiResourceItem {
+  id: number;
+  name: string;
+  path: string;
+  method: string;
+  permCode: string;
+  status: number;
+}
+
+export interface AdminCurrentUser {
+  userId: number;
+  username: string;
+  orgId?: number;
+  roles: string[];
+  permissions: string[];
 }

@@ -1,0 +1,23 @@
+node {
+    stage("Clone") {
+        git branch: "main",
+            credentialsId: "github-token",
+            url: "https://github.com/zhanzongxiang/3DModeWeb.git"
+    }
+    stage("Build Frontend") {
+        sh """
+cd frontend
+npm install
+npm run build
+        """
+    }
+    stage("Deploy to Server A") {
+        sh """
+mkdir -p /root/nginxWEB
+rsync -avz --delete frontend/dist/ root@47.113.126.29:/root/nginxWEB/
+        """
+    }
+    stage("Reload Nginx") {
+        sh "ssh root@47.113.126.29 'docker exec nginx_gw_only nginx -s reload'"
+    }
+}

@@ -1,10 +1,16 @@
 package com.modelhub.backend.dto.auth;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoginResponse {
     private String token;
     private long expiresAt;
     private Long userId;
     private String username;
+    private Long orgId;
+    private List<String> roles = new ArrayList<>();
+    private List<String> permissions = new ArrayList<>();
 
     public LoginResponse() {
     }
@@ -47,5 +53,28 @@ public class LoginResponse {
     public void setUsername(String username) {
         this.username = username;
     }
-}
 
+    public Long getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(Long orgId) {
+        this.orgId = orgId;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
+    public List<String> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<String> permissions) {
+        this.permissions = permissions;
+    }
+}

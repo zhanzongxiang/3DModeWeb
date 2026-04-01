@@ -23,6 +23,33 @@
           <span v-if="!collapsed">上传</span>
         </RouterLink>
         <RouterLink
+          v-if="authStore.hasPermission('sys:user:list')"
+          class="rail-item"
+          :class="collapsed ? 'justify-center' : ''"
+          to="/admin/users"
+        >
+          <span class="rail-icon">A</span>
+          <span v-if="!collapsed">用户管理</span>
+        </RouterLink>
+        <RouterLink
+          v-if="authStore.hasPermission('sys:role:list')"
+          class="rail-item"
+          :class="collapsed ? 'justify-center' : ''"
+          to="/admin/roles"
+        >
+          <span class="rail-icon">R</span>
+          <span v-if="!collapsed">角色管理</span>
+        </RouterLink>
+        <RouterLink
+          v-if="authStore.hasPermission('sys:org:list')"
+          class="rail-item"
+          :class="collapsed ? 'justify-center' : ''"
+          to="/admin/orgs"
+        >
+          <span class="rail-icon">O</span>
+          <span v-if="!collapsed">组织管理</span>
+        </RouterLink>
+        <RouterLink
           v-if="authStore.isLoggedIn"
           class="rail-item"
           :class="collapsed ? 'justify-center' : ''"
@@ -30,6 +57,15 @@
         >
           <span class="rail-icon">C</span>
           <span v-if="!collapsed">我的收藏</span>
+        </RouterLink>
+        <RouterLink
+          v-if="authStore.isLoggedIn"
+          class="rail-item"
+          :class="collapsed ? 'justify-center' : ''"
+          to="/account/security"
+        >
+          <span class="rail-icon">S</span>
+          <span v-if="!collapsed">账号安全</span>
         </RouterLink>
         <RouterLink v-if="!authStore.isLoggedIn" class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/login">
           <span class="rail-icon">L</span>
@@ -103,8 +139,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router";
+import { fetchAdminMe } from "../api/modules/adminAuth";
 import { useAuthStore } from "../stores/auth";
 
 const authStore = useAuthStore();
@@ -123,6 +160,25 @@ watch(
   },
   { immediate: true },
 );
+
+onMounted(async () => {
+  if (!authStore.isLoggedIn || authStore.permissions.length > 0) {
+    return;
+  }
+  try {
+    const data = await fetchAdminMe();
+    authStore.setAuth({
+      token: authStore.token,
+      userId: data.userId,
+      username: data.username,
+      orgId: data.orgId,
+      roles: data.roles,
+      permissions: data.permissions,
+    });
+  } catch {
+    // ignore. regular user without admin permissions will not pass admin profile endpoint.
+  }
+});
 
 function submitSearch() {
   const query: Record<string, string> = {};

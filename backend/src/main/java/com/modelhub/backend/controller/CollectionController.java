@@ -7,6 +7,10 @@ import com.modelhub.backend.dto.collection.CollectionToggleResponse;
 import com.modelhub.backend.entity.TbCollection;
 import com.modelhub.backend.security.AuthenticatedUser;
 import com.modelhub.backend.service.CollectionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -21,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/collections")
+@Tag(name = "Collections", description = "Favorite collection APIs")
 public class CollectionController {
     private final CollectionService collectionService;
 
@@ -29,9 +34,10 @@ public class CollectionController {
     }
 
     @PostMapping("/toggle")
+    @Operation(summary = "Toggle collection status for a model", security = {@SecurityRequirement(name = "bearerAuth")})
     public ApiResponse<CollectionToggleResponse> toggle(
             @Valid @RequestBody CollectionToggleRequest request,
-            Authentication authentication
+            @Parameter(hidden = true) Authentication authentication
     ) {
         AuthenticatedUser user = requireUser(authentication);
         boolean collected = collectionService.toggle(user.getId(), request.getModelId());
@@ -39,9 +45,10 @@ public class CollectionController {
     }
 
     @GetMapping("/status")
+    @Operation(summary = "Check whether current user collected a model", security = {@SecurityRequirement(name = "bearerAuth")})
     public ApiResponse<CollectionToggleResponse> status(
             @RequestParam("modelId") Long modelId,
-            Authentication authentication
+            @Parameter(hidden = true) Authentication authentication
     ) {
         AuthenticatedUser user = requireUser(authentication);
         boolean collected = collectionService.isCollected(user.getId(), modelId);
@@ -49,7 +56,8 @@ public class CollectionController {
     }
 
     @GetMapping("/me")
-    public ApiResponse<List<TbCollection>> myCollections(Authentication authentication) {
+    @Operation(summary = "List current user's collections", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ApiResponse<List<TbCollection>> myCollections(@Parameter(hidden = true) Authentication authentication) {
         AuthenticatedUser user = requireUser(authentication);
         return ApiResponse.success(collectionService.listByUserId(user.getId()));
     }

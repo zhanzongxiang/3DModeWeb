@@ -7,6 +7,10 @@ import com.modelhub.backend.dto.model.ModelListResponse;
 import com.modelhub.backend.dto.model.ModelUploadRequest;
 import com.modelhub.backend.security.AuthenticatedUser;
 import com.modelhub.backend.service.ModelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/models")
+@Tag(name = "Models", description = "Model listing and publishing APIs")
 public class ModelController {
     private final ModelService modelService;
 
@@ -27,7 +32,11 @@ public class ModelController {
     }
 
     @PostMapping
-    public ApiResponse<Void> upload(@Valid @RequestBody ModelUploadRequest request, Authentication authentication) {
+    @Operation(summary = "Publish a model", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ApiResponse<Void> upload(
+            @Valid @RequestBody ModelUploadRequest request,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
         if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "unauthorized");
         }
@@ -40,6 +49,7 @@ public class ModelController {
     }
 
     @GetMapping
+    @Operation(summary = "List models with optional fuzzy filters")
     public ApiResponse<ModelListResponse> list(
             @RequestParam(defaultValue = "1") long page,
             @RequestParam(defaultValue = "20") long size,
