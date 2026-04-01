@@ -8,6 +8,15 @@ export default defineConfig({
     host: true,//ip地址 或 '0.0.0.0' 或 "loaclhost"
     open: false, //启动后是否自动打开浏览器
     https: false, // 是否开启 https
+    proxy: {
+      '/api': {
+        target: 'http://36.150.237.57/api', //服务器
+        changeOrigin: true,
+        ws: true,
+        hotOnly: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+    }
   },
 });
 
