@@ -3,9 +3,11 @@ import RecommendView from "../views/RecommendView.vue";
 import HallView from "../views/HallView.vue";
 import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
+import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import UploadView from "../views/UploadView.vue";
 import ModelDetailView from "../views/ModelDetailView.vue";
 import MyCollectionsView from "../views/MyCollectionsView.vue";
+import AccountSecurityView from "../views/AccountSecurityView.vue";
 import AdminUsersView from "../views/AdminUsersView.vue";
 import AdminRolesView from "../views/AdminRolesView.vue";
 import AdminOrgsView from "../views/AdminOrgsView.vue";
@@ -20,7 +22,9 @@ const router = createRouter({
     { path: "/collections", component: MyCollectionsView, meta: { requiresAuth: true } },
     { path: "/login", component: LoginView },
     { path: "/register", component: RegisterView },
+    { path: "/forgot-password", component: ForgotPasswordView },
     { path: "/upload", component: UploadView, meta: { requiresAuth: true } },
+    { path: "/account/security", component: AccountSecurityView, meta: { requiresAuth: true } },
     { path: "/admin/users", component: AdminUsersView, meta: { requiresAuth: true, permission: "sys:user:list" } },
     { path: "/admin/roles", component: AdminRolesView, meta: { requiresAuth: true, permission: "sys:role:list" } },
     { path: "/admin/orgs", component: AdminOrgsView, meta: { requiresAuth: true, permission: "sys:org:list" } },

@@ -15,10 +15,13 @@ public class SysUser {
     private String realName;
     private String mobile;
     private String email;
+    private Integer mobileVerified;
+    private Integer emailVerified;
     private String passwordHash;
     private Integer status;
     private Long orgId;
     private LocalDateTime lastLoginTime;
+    private LocalDateTime cancelTime;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
@@ -78,6 +81,22 @@ public class SysUser {
         this.email = email;
     }
 
+    public Integer getMobileVerified() {
+        return mobileVerified;
+    }
+
+    public void setMobileVerified(Integer mobileVerified) {
+        this.mobileVerified = mobileVerified;
+    }
+
+    public Integer getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Integer emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -100,6 +119,14 @@ public class SysUser {
 
     public void setLastLoginTime(LocalDateTime lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
+    }
+
+    public LocalDateTime getCancelTime() {
+        return cancelTime;
+    }
+
+    public void setCancelTime(LocalDateTime cancelTime) {
+        this.cancelTime = cancelTime;
     }
 
     public LocalDateTime getCreateTime() {

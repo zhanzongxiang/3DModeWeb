@@ -26,6 +26,31 @@ export interface RegisterRequest {
   captchaToken?: string;
 }
 
+export interface ForgotPasswordCodeRequest {
+  username: string;
+  captchaToken?: string;
+}
+
+export interface ForgotPasswordCodeData {
+  expiresInSeconds: number;
+  devCode?: string;
+}
+
+export interface ForgotPasswordResetRequest {
+  username: string;
+  code: string;
+  newPassword: string;
+  captchaToken?: string;
+}
+
+export interface AccountSecurityProfileData {
+  username: string;
+  email?: string;
+  emailVerified: number;
+  mobile?: string;
+  mobileVerified: number;
+}
+
 export interface ModelItem {
   id: number;
   userId: number;

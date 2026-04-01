@@ -58,6 +58,15 @@
           <span class="rail-icon">C</span>
           <span v-if="!collapsed">我的收藏</span>
         </RouterLink>
+        <RouterLink
+          v-if="authStore.isLoggedIn"
+          class="rail-item"
+          :class="collapsed ? 'justify-center' : ''"
+          to="/account/security"
+        >
+          <span class="rail-icon">S</span>
+          <span v-if="!collapsed">账号安全</span>
+        </RouterLink>
         <RouterLink v-if="!authStore.isLoggedIn" class="rail-item" :class="collapsed ? 'justify-center' : ''" to="/login">
           <span class="rail-icon">L</span>
           <span v-if="!collapsed">登录</span>
